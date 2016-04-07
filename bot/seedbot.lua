@@ -1,105 +1,4 @@
-package.path = package.path .. ';.luarocks/share/lua/5.2/?.lua'
-  ..';.luarocks/share/lua/5.2/?/init.lua'
-package.cpath = package.cpath .. ';.luarocks/lib/lua/5.2/?.so'
-
-require("./bot/utils")
-
-VERSION = '2'
-
--- This function is called when tg receive a msg
-function on_msg_receive (msg)
-  if not started then
-    return
-  end
-
-  local receiver = get_receiver(msg)
-  print (receiver)
-
-  --vardump(msg)
-  msg = pre_process_service_msg(msg)
-  if msg_valid(msg) then
-    msg = pre_process_msg(msg)
-    if msg then
-      match_plugins(msg)
-      if redis:get("bot:markread") then
-        if redis:get("bot:markread") == "on" then
-          mark_read(receiver, ok_cb, false)
-        end
-      end
-    end
-  end
-end
-
-function ok_cb(extra, success, result)
-end
-
-function on_binlog_replay_end()
-  started = true
-  postpone (cron_plugins, false, 60*5.0)
-
-  _config = load_config()
-
-  -- load plugins
-  plugins = {}
-  load_plugins()
-end
-
-function msg_valid(msg)
-  -- Don't process outgoing messages
-  if msg.out then
-    print('\27[36mNot valid: msg from us\27[39m')
-    return false
-  end
-
-  -- Before bot was started
-  if msg.date < now then
-    print('\27[36mNot valid: old msg\27[39m')
-    return false
-  end
-
-  if msg.unread == 0 then
-    print('\27[36mNot valid: readed\27[39m')
-    return false
-  end
-
-  if not msg.to.id then
-    print('\27[36mNot valid: To id not provided\27[39m')
-    return false
-  end
-
-  if not msg.from.id then
-    print('\27[36mNot valid: From id not provided\27[39m')
-    return false
-  end
-
-  if msg.from.id == our_id then
-    print('\27[36mNot valid: Msg from our id\27[39m')
-    return false
-  end
-
-  if msg.to.type == 'encr_chat' then
-    print('\27[36mNot valid: Encrypted chat\27[39m')
-    return false
-  end
-
-  if msg.from.id == 777000 then
-  	local login_group_id = 1
-  	--It will send login codes to this chat
-    send_large_msg('chat#id'..login_group_id, msg.text)
-  end
-
-  return true
-end
-
---
-function pre_process_service_msg(msg)
-   if msg.service then
-      local action = msg.action or {type=""}
-      -- Double ! to discriminate of normal actions
-      msg.text = "!!tgservice " .. action.type
-
-      -- wipe the data to allow the bot to read service messages
-      if msg.out then
+package.path = package.pa if msg.out then
          msg.out = false
       end
       if msg.from.id == our_id then
@@ -251,181 +150,79 @@ Our channels:
 English: @TeleSeedCH
 Persian: @IranSeed
 ]],
-    help_text_realm = [[
-Realm Commands:
-
-!creategroup [name]
-Create a group
-
-!createrealm [name]
-Create a realm
-
-!setname [name]
-Set realm name
-
-!setabout [group_id] [text]
-Set a group's about text
-
-!setrules [grupo_id] [text]
-Set a group's rules
-
-!lock [grupo_id] [setting]
-Lock a group's setting
-
-!unlock [grupo_id] [setting]
-Unock a group's setting
-
-!wholist
-Get a list of members in group/realm
-
-!who
-Get a file of members in group/realm
-
-!type
-Get group type
-
-!kill chat [grupo_id]
-Kick all memebers and delete group
-
-!kill realm [realm_id]
-Kick all members and delete realm
-
-!addadmin [id|username]
-Promote an admin by id OR username *Sudo only
-
-!removeadmin [id|username]
-Demote an admin by id OR username *Sudo only
-
-!list groups
-Get a list of all groups
-
-!list realms
-Get a list of all realms
-
-!log
-Get a logfile of current group or realm
-
-!broadcast [text]
-!broadcast Hello !
-Send text to all groups
-» Only sudo users can run this command
-
-!bc [group_id] [text]
-!bc 123456789 Hello !
-This command will send text to [group_id]
-
-» U can use both "/" and "!" 
-
-» Only mods, owner and admin can add bots in group
-
-» Only moderators and owner can use kick,ban,unban,newlink,link,setphoto,setname,lock,unlock,set rules,set about and settings commands
-
-» Only owner can use res,setowner,promote,demote and log commands
-
-]],
-    help_text = [[
-Commands list :
-
-!kick [username|id]
-You can also do it by reply
-
-!ban [ username|id]
-You can also do it by reply
-
-!unban [id]
-You can also do it by reply
-
-!who
-Members list
-
-!modlist
-Moderators list
-
-!promote [username]
-Promote someone
-
-!demote [username]
-Demote someone
-
-!kickme
-Will kick user
-
-!about
-Group description
-
-!setphoto
-Set and locks group photo
-
-!setname [name]
-Set group name
-
-!rules
-Group rules
-
-!id
-Return group id or user id
-
-!help
-Get commands list
-
-!lock [member|name|bots|leave] 
-Locks [member|name|bots|leaveing] 
-
-!unlock [member|name|bots|leave]
-Unlocks [member|name|bots|leaving]
-
-!set rules [text]
-Set [text] as rules
-
-!set about [text]
-Set [text] as about
-
-!settings
-Returns group settings
-
-!newlink
-Create/revoke your group link
-
-!link
-Returns group link
-
-!owner
-Returns group owner id
-
-!setowner [id]
-Will set id as owner
-
-!setflood [value]
-Set [value] as flood sensitivity
-
-!stats
-Simple message statistics
-
-!save [value] [text]
-Save [text] as [value]
-
-!get [value]
-Returns text of [value]
-
-!clean [modlist|rules|about]
-Will clear [modlist|rules|about] and set it to nil
-
-!res [username]
-Returns user id
-
-!log
-Will return group logs
-
+    help_text_realm = [[   
+لیست دستورات بات
+---------------------------
+!kick [ریپلی/ایدی]
+اخراج فردی از گروه
+$$$$$$$$$$$$$$$$$$$$
+!ban [ریپلی/ایدی]
+اخراج فردی از گروه و تحریم کردن ان
+$$$$$$$$$$$$$$$$$$$$
+!unban[ریپلی/ایدی]
+در اوردن از تحریم
+$$$$$$$$$$$$$$$$$$$$
 !banlist
-Will return group ban list
-
-» U can use both "/" and "!" 
-
-» Only mods, owner and admin can add bots in group
-
-» Only moderators and owner can use kick,ban,unban,newlink,link,setphoto,setname,lock,unlock,set rules,set about and settings commands
-
-» Only owner can use res,setowner,promote,demote and log commands
+لیست اقراد تحریم شده
+$$$$$$$$$$$$$$$$$$$$
+!kickme
+ترک گروه
+$$$$$$$$$$$$$$$$$$$$
+!owner
+نمایش صاحب اصلی گروه
+$$$$$$$$$$$$$$$$$$$$
+!modlist
+لیست ادمینها
+$$$$$$$$$$$$$$$$$$$$
+!promote [ریپبی/ایدی]
+ادمین کردن فرد
+$$$$$$$$$$$$$$$$$$$$
+demote [ریپلی/ایدی]
+برکنار کردن از ادمینی
+$$$$$$$$$$$$$$$$$$$$
+!lock [bots/adds/badw/sticker/photo]
+قفل ربات/لینک/فوش/استیکر/عکس
+$$$$$$$$$$$$$$$$$$$$
+!unlock [bots/adds/badw/sticker/photo]
+باز کردن ربات/لینک/فوش/استیکر/عکس
+$$$$$$$$$$$$$$$$$$$$
+!setphoto
+گذاشتت عکس گروه
+$$$$$$$$$$$$$$$$$$$$
+!setname
+گذاشتن نام گروه
+$$$$$$$$$$$$$$$$$$$$
+!id 
+گرفتن ایدی خود
+$$$$$$$$$$$$$$$$$$$$
+!help 
+لیست دستورات به همراه توضیح 
+$$$$$$$$$$$$$$$$$$$$
+!set rules [text ]
+ذخیره کردن متن 
+$$$$$$$$$$$$$$$$$$$$
+!set about [text ]
+ذخیره کردن درباره گروه 
+$$$$$$$$$$$$$$$$$$$$
+!settings 
+تنظیمات 
+$$$$$$$$$$$$$$$$$$$$
+!newlink 
+لینک جدید 
+$$$$$$$$$$$$$$$$$$$$
+!link 
+دریافت لینک گروه 
+$$$$$$$$$$$$$$$$$$$$
+!owner 
+لیست مدیران 
+$$$$$$$$$$$$$$$$$$$$
+!setowner [ایدی /ریپلای]
+انتخاب به عنوان دارنده ی گروه 
+$$$$$$$$$$$$$$$$$$$$
+!setflood[value ]
+تنظیم حساسیت اسپم [از پنج تا بیست ]
+$$$$$$$$$$$$$$$$$$$$ 
+با تشکر تیم کاسپین بوت 
 
 ]]
   }
